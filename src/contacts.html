@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIM - Eldr Instant Messenger</title>
+  <link rel="stylesheet" href="contacts.css">
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="screen">
+  <div class="login-brand">
+    <img src="https://eldr.wtf/images/eldr_instant_messenger.png" alt="EIM" class="login-logo">
+    <div class="login-brand-text">
+      <div class="login-title">Eldr Instant Messenger</div>
+      <div class="login-sub">Connect with your friends</div>
+    </div>
+    <div class="win-controls">
+      <button class="win-btn win-min"   title="Minimize">&#x2013;</button>
+      <button class="win-btn win-max"   title="Maximize">&#x25A1;</button>
+      <button class="win-btn win-close" title="Close">&#x2715;</button>
+    </div>
+  </div>
+
+  <div class="login-form">
+    <label class="form-label">Username</label>
+    <input id="inp-user" type="text"     class="form-input" placeholder="e.g. eldr"     maxlength="24" spellcheck="false" autocomplete="username">
+    <label class="form-label" style="margin-top:6px">Password</label>
+    <input id="inp-pass" type="password" class="form-input" placeholder="••••••••"     maxlength="128" autocomplete="current-password">
+    <div id="err-msg" class="err-msg"></div>
+  </div>
+
+  <div class="login-buttons">
+    <button id="btn-register" class="btn btn-secondary">Create Account</button>
+    <button id="btn-signin"   class="btn btn-primary">Sign In</button>
+  </div>
+</div>
+
+<!-- CONTACT LIST SCREEN -->
+<div id="screen-cl" class="screen hidden">
+  <!-- Header with user pic + name -->
+  <div class="cl-head">
+    <img id="my-pic" src="https://eldr.wtf/images/user_icons/guest.jpg"
+         class="my-pic" alt="" title="Click to change picture">
+    <div class="my-meta">
+      <div id="my-name" class="my-name">—</div>
+      <div class="my-status"><span class="dot dot-online"></span> Online</div>
+    </div>
+    <div class="win-controls">
+      <button class="win-btn win-min"   title="Minimize">&#x2013;</button>
+      <button class="win-btn win-max"   title="Maximize">&#x25A1;</button>
+      <button class="win-btn win-close" title="Close">&#x2715;</button>
+    </div>
+  </div>
+
+  <!-- Contact list body -->
+  <div class="cl-body" id="cl-body">
+    <!-- Worldwide chat row -->
+    <div class="group-row" id="btn-worldwide-chat">
+      <img src="https://eldr.wtf/images/eldr_instant_messenger.png" class="group-icon" alt="">
+      <span class="group-label">Worldwide Chat</span>
+      <span class="group-online" id="grp-count">0 online</span>
+    </div>
+
+    <!-- Named groups section -->
+    <div class="sect-head" id="hdr-groups">
+      <span class="sect-arrow" id="arr-groups">▾</span>
+      Groups
+    </div>
+    <div class="sect-body" id="list-groups"></div>
+    <div class="group-row new-group-row" id="btn-new-group">
+      <span class="new-group-plus">+</span>
+      <span class="group-label" style="color:#555">New Group…</span>
+    </div>
+
+    <!-- Online section -->
+    <div class="sect-head" id="hdr-online">
+      <span class="sect-arrow" id="arr-online">▾</span>
+      Online (<span id="n-online">0</span>)
+    </div>
+    <div class="sect-body" id="list-online"></div>
+
+    <!-- Offline section -->
+    <div class="sect-head" id="hdr-offline">
+      <span class="sect-arrow" id="arr-offline">▸</span>
+      Offline (<span id="n-offline">0</span>)
+    </div>
+    <div class="sect-body collapsed" id="list-offline"></div>
+  </div>
+
+  <div id="cl-status" class="cl-status">Connecting…</div>
+</div>
+
+<!-- Create group panel -->
+<div id="create-group-panel" class="create-group-panel hidden">
+  <div class="cgp-title">New Group</div>
+  <input id="cgp-name" class="form-input" placeholder="Group name…" maxlength="50">
+  <div class="cgp-label">Add members:</div>
+  <input id="cgp-search" class="form-input" placeholder="Search users…" style="margin-bottom:4px">
+  <div class="cgp-members" id="cgp-members"></div>
+  <div class="cgp-foot">
+    <button id="cgp-cancel" class="btn btn-secondary">Cancel</button>
+    <button id="cgp-create" class="btn btn-primary">Create</button>
+  </div>
+</div>
+
+<!-- Profile picture picker overlay -->
+<div id="pic-picker" class="pic-picker hidden">
+  <div class="pic-picker-title">Choose a Display Picture</div>
+  <div class="pic-picker-grid" id="pic-grid"></div>
+  <div class="pic-upload">
+    <label class="upload-label">
+      Upload image…
+      <input type="file" accept="image/*" id="pic-upload-input" class="upload-input">
+    </label>
+  </div>
+</div>
+
+<!-- Update banner (hidden until an update is ready) -->
+<div id="update-banner" class="update-banner hidden">
+  <span id="update-msg">Downloading update…</span>
+  <button id="update-btn" class="update-btn hidden">Restart &amp; Update</button>
+</div>
+
+<script src="contacts.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIM Chat</title>
+  <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+
+<!-- Partner / group header (also the drag region) -->
+<div class="chat-head" id="chat-head">
+  <img id="partner-pic" class="partner-pic" src="" alt="">
+  <div class="head-info">
+    <div id="partner-name" class="partner-name">…</div>
+    <div class="partner-status">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">Online</span>
+    </div>
+  </div>
+  <div class="win-controls">
+    <button class="win-btn win-min"   id="btn-win-min"   title="Minimize">&#x2013;</button>
+    <button class="win-btn win-max"   id="btn-win-max"   title="Maximize">&#x25A1;</button>
+    <button class="win-btn win-close" id="btn-win-close" title="Close">&#x2715;</button>
+  </div>
+</div>
+
+<!-- Incoming call bar -->
+<div id="incoming-call" class="voice-bar hidden">
+  <span class="voice-bar-icon">📞</span>
+  <span id="voice-caller-name">Someone</span> is calling…
+  <div class="voice-bar-actions">
+    <button id="btn-voice-accept" class="voice-btn voice-accept">Accept</button>
+    <button id="btn-voice-decline" class="voice-btn voice-decline">Decline</button>
+  </div>
+</div>
+
+<!-- Active call bar -->
+<div id="active-call" class="voice-bar voice-bar-active hidden">
+  <span class="voice-bar-icon">📞</span>
+  <span id="voice-call-info">In call</span>
+  <span id="voice-call-timer" class="voice-timer"></span>
+  <div class="voice-bar-actions">
+    <button id="btn-voice-mute"   class="voice-btn voice-mute"   title="Mute">🎤</button>
+    <button id="btn-voice-hangup" class="voice-btn voice-hangup" title="End call">End</button>
+  </div>
+</div>
+
+<!-- Messages area -->
+<div class="msgs-area" id="msgs-area"></div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <button class="tb-btn tb-fmt" data-fmt="bold"      title="Bold"><b>B</b></button>
+  <button class="tb-btn tb-fmt" data-fmt="italic"    title="Italic"><i>I</i></button>
+  <button class="tb-btn tb-fmt" data-fmt="underline" title="Underline"><u>U</u></button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="btn-emote" title="Emoticons">☺</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="btn-wipe" title="Request Chat Wipe">🗑</button>
+  <div class="tb-sep" id="voice-sep"></div>
+  <button class="tb-btn" id="btn-call" title="Start voice call">📞</button>
+</div>
+
+<!-- Compose area -->
+<div class="compose">
+  <textarea id="compose-input" class="compose-ta"
+            placeholder="Write a message… (Enter to send, Shift+Enter for new line)"></textarea>
+  <button id="btn-send" class="btn-send">Send</button>
+</div>
+
+<!-- Emoticon picker -->
+<div id="emote-picker" class="emote-picker hidden">
+  <div class="ep-tabs">
+    <button class="ep-tab ep-tab-active" data-tab="classic">Classic</button>
+    <button class="ep-tab" data-tab="custom">Custom</button>
+  </div>
+  <div class="ep-pane ep-pane-active" id="ep-pane-classic"></div>
+  <div class="ep-pane" id="ep-pane-custom"></div>
+</div>
+
+<script src="chat.js"></script>
+</body>
+</html>
