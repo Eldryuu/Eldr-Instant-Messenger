@@ -248,8 +248,8 @@ function handleWSMessage(msg) {
         grpWin.webContents.send('chat:message', { msg });
       }
       if (msg.from.id !== state.myId) {
-        const focused = grpWin && !grpWin.isDestroyed() && grpWin.isFocused();
-        if (!focused) {
+        const visible = grpWin && !grpWin.isDestroyed() && !grpWin.isMinimized();
+        if (!visible) {
           notify(msg.from.displayName + ' (Worldwide)', msg.text, () => {
             if (!grpWin || grpWin.isDestroyed()) {
               createChatWindow('worldwide', 'Worldwide Chat', null, 'worldwide');
@@ -287,8 +287,8 @@ function handleWSMessage(msg) {
         }
         if (msg.from.id !== state.myId) {
           sendToContacts('ws:group_msg', { msg });
-          const focused = win && !win.isDestroyed() && win.isFocused();
-          if (!focused) {
+          const visible = win && !win.isDestroyed() && !win.isMinimized();
+          if (!visible) {
             notify(msg.from.displayName + ' (' + grp.name + ')', msg.text, () => {
               if (!win || win.isDestroyed()) {
                 createChatWindow('grp:' + msg.group_id, grp.name, null, 'group');
@@ -318,8 +318,8 @@ function handleWSMessage(msg) {
         if (!pmWin || pmWin.isDestroyed()) {
           sendToContacts('ws:private_msg', { msg });
         }
-        const focused = pmWin && !pmWin.isDestroyed() && pmWin.isFocused();
-        if (!focused) {
+        const visible = pmWin && !pmWin.isDestroyed() && !pmWin.isMinimized();
+        if (!visible) {
           notify(msg.from.displayName, msg.text, () => {
             const info = state.users.get(msg.from.id);
             if (!pmWin || pmWin.isDestroyed()) {
@@ -391,7 +391,7 @@ function handleWSMessage(msg) {
       if (winKey) {
         const win = chatWindows.get(winKey);
         if (win && !win.isDestroyed()) win.webContents.send('voice:declined', msg);
-        state.voiceCalls.delete(msg.call_id);
+        if (msg.chat_type !== 'group') state.voiceCalls.delete(msg.call_id);
       }
       break;
     }
@@ -401,8 +401,25 @@ function handleWSMessage(msg) {
       if (winKey) {
         const win = chatWindows.get(winKey);
         if (win && !win.isDestroyed()) win.webContents.send('voice:ended', msg);
-        state.voiceCalls.delete(msg.call_id);
+        // Group call entry only removed when all participants leave (tracked by group_call_ended)
+        if (msg.chat_type !== 'group') state.voiceCalls.delete(msg.call_id);
       }
+      break;
+    }
+
+    case 'group_call_active': {
+      state.activeGroupCalls = state.activeGroupCalls || new Map();
+      state.activeGroupCalls.set(msg.group_id, msg.call_id);
+      const win = chatWindows.get('grp:' + msg.group_id);
+      if (win && !win.isDestroyed()) win.webContents.send('voice:group-call-active', msg);
+      break;
+    }
+
+    case 'group_call_ended': {
+      if (state.activeGroupCalls) state.activeGroupCalls.delete(msg.group_id);
+      const win = chatWindows.get('grp:' + msg.group_id);
+      if (win && !win.isDestroyed()) win.webContents.send('voice:group-call-ended', msg);
+      state.voiceCalls.delete(msg.call_id);
       break;
     }
 
@@ -572,6 +589,11 @@ ipcMain.handle('chat:get-init', (e) => {
   const pendingInvite  = state.pendingVoiceInvites.get(winKey) || null;
   if (pendingInvite) state.pendingVoiceInvites.delete(winKey);
 
+  let activeGroupCallId = null;
+  if (chatType === 'group' && state.activeGroupCalls) {
+    activeGroupCallId = state.activeGroupCalls.get(winKey.slice(4)) || null;
+  }
+
   return {
     partnerId:          winKey,
     partnerName:        titleName,
@@ -585,6 +607,7 @@ ipcMain.handle('chat:get-init', (e) => {
     onlineCount,
     turnConfig:         state.turnConfig,
     pendingVoiceInvite: pendingInvite,
+    activeGroupCallId,
   };
 });
 
@@ -619,6 +642,10 @@ ipcMain.handle('voice:accept',  (_, { callId }) => wsSend({ type: 'voice_accept'
 ipcMain.handle('voice:decline', (_, { callId }) => wsSend({ type: 'voice_decline', call_id: callId }));
 ipcMain.handle('voice:end',     (_, { callId }) => wsSend({ type: 'voice_end',     call_id: callId }));
 ipcMain.handle('voice:signal',  (_, { callId, to, signal }) => wsSend({ type: 'voice_signal', call_id: callId, to, signal }));
+ipcMain.handle('voice:join',    (_, { callId, winKey }) => {
+  state.voiceCalls.set(callId, winKey);
+  wsSend({ type: 'voice_join', call_id: callId });
+});
 
 // ── Auto-updater ──────────────────────────────────────────────────────────────
 

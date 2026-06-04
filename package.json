@@ -62,8 +62,8 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "GITHUB_USERNAME",
-      "repo": "GITHUB_REPO"
+      "owner": "Eldryuu",
+      "repo": "Eldr-Instant-Messenger"
     }
   }
 }

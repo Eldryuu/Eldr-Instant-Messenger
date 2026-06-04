@@ -115,6 +115,19 @@ const emotePickerEl = document.getElementById('emote-picker');
 const btnEmote      = document.getElementById('btn-emote');
 const btnWipe       = document.getElementById('btn-wipe');
 
+// ── Picture lightbox ──────────────────────────────────────────────────────────
+
+partnerPicEl.addEventListener('click', () => {
+  if (!partnerPicEl.src || chatType !== 'private') return;
+  const overlay = document.createElement('div');
+  overlay.className = 'pic-lightbox';
+  const img = document.createElement('img');
+  img.src = partnerPicEl.src;
+  overlay.appendChild(img);
+  overlay.addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
+});
+
 // ── State ─────────────────────────────────────────────────────────────────────
 
 let myId              = null;
@@ -368,6 +381,12 @@ api.onChatWipeDeclined(msg => {
     elCallerName.textContent = data.pendingVoiceInvite.from.displayName;
     elIncomingCall.classList.remove('hidden');
   }
+
+  if (data.activeGroupCallId && chatType === 'group') {
+    pendingGroupCallId = data.activeGroupCallId;
+    elGroupCallLabel.textContent = 'A call is in progress';
+    elGroupCallJoin.classList.remove('hidden');
+  }
 })();
 
 api.onChatMessage(({ msg }) => appendMsg(msg));
@@ -404,16 +423,21 @@ let callStartTime        = null;
 const peerConnections  = new Map(); // peerId -> RTCPeerConnection
 const iceCandidateQueues = new Map(); // peerId -> [candidate, ...]
 
-const elIncomingCall  = document.getElementById('incoming-call');
-const elActiveCall    = document.getElementById('active-call');
-const elCallerName    = document.getElementById('voice-caller-name');
-const elCallInfo      = document.getElementById('voice-call-info');
-const elCallTimer     = document.getElementById('voice-call-timer');
-const btnCall         = document.getElementById('btn-call');
-const btnVoiceAccept  = document.getElementById('btn-voice-accept');
-const btnVoiceDecline = document.getElementById('btn-voice-decline');
-const btnVoiceMute    = document.getElementById('btn-voice-mute');
-const btnVoiceHangup  = document.getElementById('btn-voice-hangup');
+const elIncomingCall   = document.getElementById('incoming-call');
+const elActiveCall     = document.getElementById('active-call');
+const elGroupCallJoin  = document.getElementById('group-call-join');
+const elGroupCallLabel = document.getElementById('group-call-label');
+const elCallerName     = document.getElementById('voice-caller-name');
+const elCallInfo       = document.getElementById('voice-call-info');
+const elCallTimer      = document.getElementById('voice-call-timer');
+const btnCall          = document.getElementById('btn-call');
+const btnVoiceAccept   = document.getElementById('btn-voice-accept');
+const btnVoiceDecline  = document.getElementById('btn-voice-decline');
+const btnVoiceMute     = document.getElementById('btn-voice-mute');
+const btnVoiceHangup   = document.getElementById('btn-voice-hangup');
+const btnGroupJoin     = document.getElementById('btn-group-join');
+
+let pendingGroupCallId = null; // call_id for an active group call we can join
 
 function startCallTimer() {
   callStartTime = Date.now();
@@ -616,14 +640,55 @@ api.onVoiceAccepted(async msg => {
 
 api.onVoiceDeclined(msg => {
   if (!activeCallId || msg.call_id !== activeCallId) return;
-  appendSys(msg.from.displayName + ' declined the call.');
-  cleanupCall();
+  if (msg.chat_type === 'group') {
+    appendSys(msg.from.displayName + ' declined to join the call.');
+    // Group call continues — don't cleanup
+  } else {
+    appendSys(msg.from.displayName + ' declined the call.');
+    cleanupCall();
+  }
 });
 
 api.onVoiceEnded(msg => {
   if (!msg.call_id || msg.call_id !== activeCallId) return;
-  appendSys(msg.from.displayName + ' ended the call.');
-  cleanupCall();
+  if (msg.chat_type === 'group' && msg.from.id !== myId) {
+    appendSys(msg.from.displayName + ' left the call.');
+    // Group call continues — don't cleanup
+  } else {
+    appendSys(msg.from.displayName + ' ended the call.');
+    cleanupCall();
+  }
+});
+
+// Group call join bar
+btnGroupJoin.addEventListener('click', async () => {
+  if (!pendingGroupCallId || activeCallId) return;
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  } catch {
+    appendSys('Microphone access denied. Cannot join call.');
+    return;
+  }
+  activeCallId = pendingGroupCallId;
+  pendingGroupCallId = null;
+  elGroupCallJoin.classList.add('hidden');
+  elCallInfo.textContent  = 'Connecting…';
+  elCallTimer.textContent = '';
+  elActiveCall.classList.remove('hidden');
+  btnCall.disabled = true;
+  api.voiceJoin({ callId: activeCallId, winKey: partnerId });
+});
+
+api.onVoiceGroupCallActive(msg => {
+  if (chatType !== 'group') return;
+  pendingGroupCallId = msg.call_id;
+  elGroupCallLabel.textContent = msg.from.displayName + ' started a call';
+  elGroupCallJoin.classList.remove('hidden');
+});
+
+api.onVoiceGroupCallEnded(() => {
+  pendingGroupCallId = null;
+  elGroupCallJoin.classList.add('hidden');
 });
 
 api.onVoiceSignal(async msg => {

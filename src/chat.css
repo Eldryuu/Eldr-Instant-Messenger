@@ -60,6 +60,22 @@ body {
   border: 2px solid rgba(255,255,255,.4);
   flex-shrink: 0;
   background: #335;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.partner-pic:hover { opacity: .85; }
+
+/* ── Picture lightbox ─────────────────────────────────────────────────────── */
+.pic-lightbox {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.82);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; cursor: pointer;
+}
+.pic-lightbox img {
+  max-width: 90vw; max-height: 90vh;
+  object-fit: contain; border-radius: 6px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.7);
 }
 
 .head-info       { display: flex; flex-direction: column; }
